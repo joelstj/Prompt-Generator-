@@ -3,9 +3,12 @@ import json
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KB request limit
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_FILE = os.path.join(BASE_DIR, "prompt_templates.json")
+
+MAX_FIELD_LENGTH = 4000  # characters per field
 
 BLOCKCHAIN_KEYWORDS = {
     "solidity", "smart contract", "defi", "dex", "nft", "mev", "arbitrage",
@@ -78,15 +81,32 @@ def _load_templates() -> list:
         return []
 
 
+# Cache templates once at startup to avoid repeated disk reads.
+_TEMPLATES_CACHE: list = _load_templates()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "template_count": len(_TEMPLATES_CACHE)})
 
 
 @app.route("/api/generate", methods=["POST"])
 def generate():
     body = request.get_json(silent=True) or {}
     field_names = ["main_goal", "output_format", "rules", "output_goal", "correctness", "how_to_act"]
+
+    for field in field_names:
+        value = body.get(field, "")
+        if not isinstance(value, str):
+            return jsonify({"error": f"Field '{field}' must be a string."}), 400
+        if len(value) > MAX_FIELD_LENGTH:
+            return jsonify({"error": f"Field '{field}' exceeds the maximum length of {MAX_FIELD_LENGTH} characters."}), 400
+
     if not any(body.get(f, "").strip() for f in field_names):
         return jsonify({"error": "At least one field must be filled in."}), 400
 
@@ -96,7 +116,17 @@ def generate():
 
 @app.route("/api/templates", methods=["GET"])
 def get_templates():
-    return jsonify(_load_templates())
+    return jsonify(_TEMPLATES_CACHE)
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Not found"}), 404
+
+
+@app.errorhandler(413)
+def request_too_large(e):
+    return jsonify({"error": "Request body too large"}), 413
 
 
 if __name__ == "__main__":
