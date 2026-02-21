@@ -28,7 +28,7 @@ A professional dark-themed web application that helps developers build structure
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/Prompt-Generator-.git
+git clone https://github.com/joelstj/Prompt-Generator-.git
 cd Prompt-Generator-
 
 # 2. Run the installer
