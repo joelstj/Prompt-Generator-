@@ -10,6 +10,39 @@ TEMPLATES_FILE = os.path.join(BASE_DIR, "prompt_templates.json")
 
 MAX_FIELD_LENGTH = 4000  # characters per field
 
+OPENCLAW_INTEGRATION = (
+    "Integrate OpenClaw AI into this project:\n\n"
+    "SETUP & INSTALL:\n"
+    "1. Install: `npm install -g @openclaw/cli` (Node) or `pip install openclaw` (Python)\n"
+    "2. Authenticate: `openclaw auth --key $OPENCLAW_API_KEY`\n"
+    "3. Initialise: `openclaw init` in the project root — creates `.openclaw.json`\n\n"
+    "CONFIGURATION (.openclaw.json):\n"
+    "- Set target language, model, and output style preferences\n"
+    "- Define allowed libraries and framework constraints\n"
+    "- Configure auto-review hooks and CI integration flags\n\n"
+    "PROGRAMMING LANGUAGE INSTRUCTIONS:\n"
+    "- Specify exact language version (e.g. Python 3.11, Node 20, Solidity ^0.8.20)\n"
+    "- Follow language-idiomatic patterns; use type annotations where supported\n"
+    "- Adhere to the project linting rules (ESLint, Ruff, solhint, etc.)\n\n"
+    "TOOLS TO USE:\n"
+    "- IDE: VS Code + OpenClaw extension, or JetBrains with OpenClaw plugin\n"
+    "- Version control: Git with `openclaw hooks install` pre-commit review\n"
+    "- CI/CD: add `openclaw validate` step before merge gates\n\n"
+    "LIBRARIES TO INCLUDE:\n"
+    "- `openclaw-sdk` for programmatic API access\n"
+    "- Language SDK: `npm install openclaw-js` / `pip install openclaw-python`\n"
+    "- Optional: `openclaw-test-assist` for AI-driven test generation\n\n"
+    "ENVIRONMENT BUILD, INSTALL & DEPLOY:\n"
+    "- Development: `openclaw dev --watch` for continuous inline feedback\n"
+    "- Testing: `openclaw test-assist --coverage` to improve test coverage\n"
+    "- Pre-deploy audit: `openclaw audit --strict` (fails on any critical issue)\n"
+    "- Set `OPENCLAW_API_KEY` environment variable in all environments\n\n"
+    "OUTPUT REQUIREMENTS WITH OPENCLAW:\n"
+    "- All generated code must pass `openclaw lint` without errors\n"
+    "- Include `.openclaw.json` config in the project root\n"
+    "- Mark AI-generated sections with `# @openclaw-generated` comments for traceability"
+)
+
 BLOCKCHAIN_KEYWORDS = {
     "solidity", "smart contract", "defi", "dex", "nft", "mev", "arbitrage",
     "flash loan", "liquidity", "erc20", "erc721", "web3", "ethereum", "blockchain",
@@ -36,8 +69,10 @@ def _assemble_prompt(data: dict) -> str:
     output_goal = data.get("output_goal", "").strip()
     correctness = data.get("correctness", "").strip()
     how_to_act = data.get("how_to_act", "").strip()
+    code_output_guidelines = data.get("code_output_guidelines", "").strip()
+    openclaw_integration = bool(data.get("openclaw_integration", False))
 
-    combined = " ".join([main_goal, output_format, rules, output_goal, correctness, how_to_act])
+    combined = " ".join([main_goal, output_format, rules, output_goal, correctness, how_to_act, code_output_guidelines])
     use_blockchain_ctx = _has_blockchain_context(combined)
 
     sections = []
@@ -56,6 +91,12 @@ def _assemble_prompt(data: dict) -> str:
 
     if output_format:
         sections.append(f"## OUTPUT FORMAT\n{output_format}")
+
+    if code_output_guidelines:
+        sections.append(f"## CODE OUTPUT GUIDELINES\n{code_output_guidelines}")
+
+    if openclaw_integration:
+        sections.append(f"## OPENCLAW AI INTEGRATION\n{OPENCLAW_INTEGRATION}")
 
     if output_goal:
         sections.append(f"## OUTPUT GOAL\n{output_goal}")
@@ -106,7 +147,7 @@ def health():
 @app.route("/api/generate", methods=["POST"])
 def generate():
     body = request.get_json(silent=True) or {}
-    field_names = ["main_goal", "output_format", "rules", "output_goal", "correctness", "how_to_act"]
+    field_names = ["main_goal", "output_format", "rules", "output_goal", "correctness", "how_to_act", "code_output_guidelines"]
 
     for field in field_names:
         value = body.get(field, "")
@@ -115,7 +156,11 @@ def generate():
         if len(value) > MAX_FIELD_LENGTH:
             return jsonify({"error": f"Field '{field}' exceeds the maximum length of {MAX_FIELD_LENGTH} characters."}), 400
 
-    if not any(body.get(f, "").strip() for f in field_names):
+    openclaw = body.get("openclaw_integration", False)
+    if not isinstance(openclaw, bool):
+        return jsonify({"error": "Field 'openclaw_integration' must be a boolean."}), 400
+
+    if not any(body.get(f, "").strip() for f in field_names) and not openclaw:
         return jsonify({"error": "At least one field must be filled in."}), 400
 
     prompt = _assemble_prompt(body)

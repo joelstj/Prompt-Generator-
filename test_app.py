@@ -70,6 +70,14 @@ class TestTemplates:
         data = json.loads(client.get("/api/templates").data)
         assert len(data) == len(_TEMPLATES_CACHE)
 
+    def test_openclaw_templates_have_code_output_guidelines(self, client):
+        data = json.loads(client.get("/api/templates").data)
+        openclaw_templates = [t for t in data if t.get("category") == "OpenClaw Integration"]
+        assert len(openclaw_templates) >= 1
+        for t in openclaw_templates:
+            assert "code_output_guidelines" in t
+            assert t["code_output_guidelines"]  # non-empty
+
     def test_post_not_allowed(self, client):
         res = client.post("/api/templates")
         assert res.status_code == 405
@@ -151,6 +159,58 @@ class TestGenerate:
         assert "CORRECTNESS" in data["prompt"]
         assert "ROLE & BEHAVIOR" in data["prompt"]
 
+    def test_code_output_guidelines_appears_in_prompt(self, client):
+        res = self._post(client, {"main_goal": "test", "code_output_guidelines": "Python 3.11, pytest"})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "CODE OUTPUT GUIDELINES" in data["prompt"]
+        assert "Python 3.11" in data["prompt"]
+
+    def test_code_output_guidelines_omitted_when_blank(self, client):
+        res = self._post(client, {"main_goal": "test", "code_output_guidelines": ""})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "CODE OUTPUT GUIDELINES" not in data["prompt"]
+
+    def test_code_output_guidelines_non_string_returns_400(self, client):
+        res = self._post(client, {"main_goal": "test", "code_output_guidelines": 123})
+        assert res.status_code == 400
+        assert b"must be a string" in res.data
+
+    def test_code_output_guidelines_over_max_length_returns_400(self, client):
+        res = self._post(client, {"main_goal": "test", "code_output_guidelines": "x" * (MAX_FIELD_LENGTH + 1)})
+        assert res.status_code == 400
+        assert b"exceeds the maximum length" in res.data
+
+    def test_openclaw_integration_true_adds_section(self, client):
+        res = self._post(client, {"main_goal": "test", "openclaw_integration": True})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "OPENCLAW AI INTEGRATION" in data["prompt"]
+
+    def test_openclaw_integration_false_omits_section(self, client):
+        res = self._post(client, {"main_goal": "test", "openclaw_integration": False})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "OPENCLAW AI INTEGRATION" not in data["prompt"]
+
+    def test_openclaw_integration_absent_omits_section(self, client):
+        res = self._post(client, {"main_goal": "test"})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "OPENCLAW AI INTEGRATION" not in data["prompt"]
+
+    def test_openclaw_integration_non_bool_returns_400(self, client):
+        res = self._post(client, {"main_goal": "test", "openclaw_integration": "yes"})
+        assert res.status_code == 400
+        assert b"openclaw_integration" in res.data
+
+    def test_openclaw_only_no_other_fields_returns_200(self, client):
+        res = self._post(client, {"openclaw_integration": True})
+        assert res.status_code == 200
+        data = json.loads(res.data)
+        assert "OPENCLAW AI INTEGRATION" in data["prompt"]
+
 
 # ── Blockchain context injection ───────────────────────────────────────────────
 
@@ -204,27 +264,32 @@ class TestAssemblePrompt:
 
     def test_sections_appear_in_order(self):
         data = {
-            "main_goal":     "goal",
-            "how_to_act":    "role",
-            "rules":         "rules",
-            "output_format": "format",
-            "output_goal":   "output",
-            "correctness":   "verify",
+            "main_goal":              "goal",
+            "how_to_act":             "role",
+            "rules":                  "rules",
+            "output_format":          "format",
+            "code_output_guidelines": "lang",
+            "output_goal":            "output",
+            "correctness":            "verify",
+            "openclaw_integration":   True,
         }
         prompt = _assemble_prompt(data)
         positions = {
-            "MAIN GOAL":            prompt.index("MAIN GOAL"),
-            "ROLE & BEHAVIOR":      prompt.index("ROLE & BEHAVIOR"),
-            "RULES TO FOLLOW":      prompt.index("RULES TO FOLLOW"),
-            "OUTPUT FORMAT":        prompt.index("OUTPUT FORMAT"),
-            "OUTPUT GOAL":          prompt.index("OUTPUT GOAL"),
-            "CORRECTNESS":          prompt.index("CORRECTNESS"),
-            "FINAL INSTRUCTION":    prompt.index("FINAL INSTRUCTION"),
+            "MAIN GOAL":                prompt.index("MAIN GOAL"),
+            "ROLE & BEHAVIOR":          prompt.index("ROLE & BEHAVIOR"),
+            "RULES TO FOLLOW":          prompt.index("RULES TO FOLLOW"),
+            "OUTPUT FORMAT":            prompt.index("OUTPUT FORMAT"),
+            "CODE OUTPUT GUIDELINES":   prompt.index("CODE OUTPUT GUIDELINES"),
+            "OPENCLAW AI INTEGRATION":  prompt.index("OPENCLAW AI INTEGRATION"),
+            "OUTPUT GOAL":              prompt.index("OUTPUT GOAL"),
+            "CORRECTNESS":              prompt.index("CORRECTNESS"),
+            "FINAL INSTRUCTION":        prompt.index("FINAL INSTRUCTION"),
         }
         ordered = sorted(positions, key=lambda k: positions[k])
         assert ordered == [
             "MAIN GOAL", "ROLE & BEHAVIOR", "RULES TO FOLLOW",
-            "OUTPUT FORMAT", "OUTPUT GOAL", "CORRECTNESS", "FINAL INSTRUCTION",
+            "OUTPUT FORMAT", "CODE OUTPUT GUIDELINES", "OPENCLAW AI INTEGRATION",
+            "OUTPUT GOAL", "CORRECTNESS", "FINAL INSTRUCTION",
         ]
 
     def test_whitespace_only_fields_are_omitted(self):
@@ -237,6 +302,23 @@ class TestAssemblePrompt:
         ctx_pos = prompt.index("SYSTEM CONTEXT")
         goal_pos = prompt.index("MAIN GOAL")
         assert ctx_pos < goal_pos
+
+    def test_code_output_guidelines_included(self):
+        prompt = _assemble_prompt({"main_goal": "test", "code_output_guidelines": "Python 3.11"})
+        assert "CODE OUTPUT GUIDELINES" in prompt
+        assert "Python 3.11" in prompt
+
+    def test_openclaw_section_included_when_true(self):
+        prompt = _assemble_prompt({"main_goal": "test", "openclaw_integration": True})
+        assert "OPENCLAW AI INTEGRATION" in prompt
+
+    def test_openclaw_section_omitted_when_false(self):
+        prompt = _assemble_prompt({"main_goal": "test", "openclaw_integration": False})
+        assert "OPENCLAW AI INTEGRATION" not in prompt
+
+    def test_openclaw_section_omitted_by_default(self):
+        prompt = _assemble_prompt({"main_goal": "test"})
+        assert "OPENCLAW AI INTEGRATION" not in prompt
 
 
 # ── 404 handler ────────────────────────────────────────────────────────────────
