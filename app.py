@@ -86,8 +86,8 @@ def index():
 @app.route("/api/generate", methods=["POST"])
 def generate():
     body = request.get_json(silent=True) or {}
-    required = ["main_goal", "output_format", "rules", "output_goal", "correctness", "how_to_act"]
-    if not any(body.get(f, "").strip() for f in required):
+    field_names = ["main_goal", "output_format", "rules", "output_goal", "correctness", "how_to_act"]
+    if not any(body.get(f, "").strip() for f in field_names):
         return jsonify({"error": "At least one field must be filled in."}), 400
 
     prompt = _assemble_prompt(body)

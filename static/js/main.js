@@ -223,7 +223,7 @@ async function handleCopy() {
     copyBtn.textContent = "✓ Copied!";
     setTimeout(() => { copyBtn.innerHTML = "📋 Copy to Clipboard"; }, 2000);
   } catch {
-    // Fallback
+    // Fallback for legacy browsers that don't support the Clipboard API
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.style.cssText = "position:fixed;opacity:0;";
