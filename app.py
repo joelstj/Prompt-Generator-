@@ -85,6 +85,14 @@ def _load_templates() -> list:
 _TEMPLATES_CACHE: list = _load_templates()
 
 
+@app.after_request
+def set_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
 @app.route("/")
 def index():
     return render_template("index.html")

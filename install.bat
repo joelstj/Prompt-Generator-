@@ -113,10 +113,4 @@ echo   Enable debug mode:
 echo     Set FLASK_DEBUG=true in run.bat before running
 echo.
 
-:: ── Step 5: Launch the app and open browser ──────────────────────────────────
-echo [INFO]  Launching the app...
-echo.
-start /b cmd /c "timeout /t 2 >nul && start http://localhost:5000"
-python app.py
-
 endlocal

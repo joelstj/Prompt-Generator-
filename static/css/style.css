@@ -295,6 +295,7 @@ option { background: var(--bg-card); color: var(--text-primary); }
   border-color: rgba(88,166,255,.3);
 }
 .btn-ghost:hover { background: var(--accent-dim); }
+.btn-ghost:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 .btn-full { width: 100%; }
 .btn-sm { font-size: .8rem; padding: .45rem .9rem; }
