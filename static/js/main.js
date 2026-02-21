@@ -53,6 +53,11 @@ function populateTemplateDropdown() {
     opt.textContent = `${t.name} (${t.category})`;
     templateSelect.appendChild(opt);
   });
+  // Update template count displays
+  const countBadge = document.querySelector(".header-badge .badge-blue");
+  if (countBadge) countBadge.textContent = `${templates.length} Templates`;
+  const countSpan = document.querySelector(".template-count");
+  if (countSpan) countSpan.textContent = `${templates.length} templates`;
 }
 
 function renderCategoryFilters() {
@@ -221,7 +226,7 @@ async function handleCopy() {
     await navigator.clipboard.writeText(text);
     showToast("Copied to clipboard!", "success");
     copyBtn.textContent = "✓ Copied!";
-    setTimeout(() => { copyBtn.innerHTML = "📋 Copy to Clipboard"; }, 2000);
+    setTimeout(() => { copyBtn.textContent = "📋 Copy to Clipboard"; }, 2000);
   } catch {
     showToast("Copy failed — please select and copy the text manually.", "error");
   }
