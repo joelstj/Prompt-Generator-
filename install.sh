@@ -75,11 +75,14 @@ fi
 
 source .venv/bin/activate
 export FLASK_DEBUG="${FLASK_DEBUG:-false}"
+APP_URL="http://localhost:5000"
 echo ""
 echo "  ⚡  Starting AI Prompt Generator..."
-echo "  🌐  Open http://localhost:5000 in your browser"
+echo "  🌐  Open $APP_URL in your browser"
 echo "  🛑  Press Ctrl+C to stop"
 echo ""
+# Auto-open browser after a short delay — best-effort, silently ignored if no browser command found
+(sleep 2 && { xdg-open "$APP_URL" 2>/dev/null || open "$APP_URL" 2>/dev/null || true; }) &
 exec python app.py
 RUN_EOF
 
