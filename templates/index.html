@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI Prompt Generator for Blockchain, DeFi, and Bot Development. Build optimized prompts with professional templates." />
+  <title>AI Prompt Generator | Blockchain &amp; DeFi Dev</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="/" aria-label="AI Prompt Generator Home">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <span class="logo-title">AI Prompt Generator</span>
+        <span class="logo-sub">Blockchain &amp; DeFi Dev</span>
+      </div>
+    </a>
+    <div class="header-badge">
+      <span class="badge badge-blue">12 Templates</span>
+      <span class="badge badge-green">Open Source</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────── -->
+<main class="main-container">
+
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <h1 id="hero-heading">Generate Professional AI Prompts</h1>
+    <p>Fill in the six structured fields, pick a blockchain/DeFi template, and instantly build optimized prompts for your AI assistant.</p>
+  </section>
+
+  <!-- Two-Panel Layout -->
+  <div class="panels">
+
+    <!-- ── Left Panel: Input Form ──────────────────────────────── -->
+    <section class="panel" aria-labelledby="input-panel-title">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="icon icon-blue">📝</div>
+          <span id="input-panel-title">Prompt Builder</span>
+        </div>
+        <span class="badge badge-blue">6 Fields</span>
+      </div>
+      <div class="panel-body">
+        <form id="prompt-form" novalidate>
+
+          <!-- Template Selector -->
+          <div class="form-group">
+            <label for="template-select">
+              <span class="label-icon">📚</span> Quick Template
+            </label>
+            <select id="template-select" aria-label="Select a prompt template">
+              <option value="">— Loading templates… —</option>
+            </select>
+          </div>
+
+          <!-- Main Goal -->
+          <div class="form-group">
+            <label for="main-goal">
+              <span class="label-icon">🎯</span> Main Goal
+            </label>
+            <textarea
+              id="main-goal"
+              class="tall"
+              placeholder="Describe what you want the AI to accomplish. E.g., 'Write a gas-optimized ERC-20 token contract with mint/burn functionality and role-based access control…'"
+              aria-label="Main goal"
+            ></textarea>
+          </div>
+
+          <!-- Output Format -->
+          <div class="form-group">
+            <label for="output-format">
+              <span class="label-icon">📄</span> Output Format
+            </label>
+            <textarea
+              id="output-format"
+              placeholder="Specify the desired output structure. E.g., 'Provide Solidity source code in a markdown code block, followed by a deployment guide and key design notes…'"
+              aria-label="Output format"
+            ></textarea>
+          </div>
+
+          <!-- Rules to Follow -->
+          <div class="form-group">
+            <label for="rules">
+              <span class="label-icon">📏</span> Rules to Follow
+            </label>
+            <textarea
+              id="rules"
+              class="tall"
+              placeholder="List constraints and requirements. E.g.:\n1. Use OpenZeppelin libraries\n2. Apply checks-effects-interactions pattern\n3. All functions must have NatSpec comments…"
+              aria-label="Rules to follow"
+            ></textarea>
+          </div>
+
+          <!-- Output Goal -->
+          <div class="form-group">
+            <label for="output-goal">
+              <span class="label-icon">✅</span> Output Goal
+            </label>
+            <textarea
+              id="output-goal"
+              placeholder="What constitutes a successful output? E.g., 'A fully deployable contract ready for Hardhat, with unit test skeletons and a deployment script…'"
+              aria-label="Output goal"
+            ></textarea>
+          </div>
+
+          <!-- Correctness & Verification -->
+          <div class="form-group">
+            <label for="correctness">
+              <span class="label-icon">🔍</span> Correctness &amp; Verification
+            </label>
+            <textarea
+              id="correctness"
+              placeholder="Define how to verify correctness. E.g., 'Verify compiles without warnings under solc 0.8.20, check for reentrancy vulnerabilities, confirm access control…'"
+              aria-label="Correctness and verification"
+            ></textarea>
+          </div>
+
+          <!-- How to Act -->
+          <div class="form-group">
+            <label for="how-to-act">
+              <span class="label-icon">🤖</span> How to Act
+            </label>
+            <textarea
+              id="how-to-act"
+              placeholder="Define the AI's role and persona. E.g., 'Act as a senior Solidity engineer with 5+ years of EVM experience. Prioritize security and gas efficiency…'"
+              aria-label="How to act"
+            ></textarea>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="button" id="generate-btn" class="btn btn-primary">
+              ⚡ Generate Optimized Prompt
+            </button>
+            <button type="button" id="clear-btn" class="btn btn-secondary">
+              🗑️ Clear All
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </section>
+
+    <!-- ── Right Panel: Output ─────────────────────────────────── -->
+    <section class="panel" aria-labelledby="output-panel-title">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="icon icon-purple">✨</div>
+          <span id="output-panel-title">Generated Prompt</span>
+        </div>
+        <div class="output-meta">
+          <span class="char-count" id="char-count" aria-live="polite"></span>
+          <button id="copy-btn" class="btn btn-ghost btn-sm" disabled aria-label="Copy prompt to clipboard">
+            📋 Copy to Clipboard
+          </button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="output-container">
+
+          <!-- Spinner -->
+          <div class="spinner-overlay" id="spinner-overlay" role="status" aria-label="Generating prompt">
+            <div class="spinner"></div>
+            <span class="spinner-text">Assembling your prompt…</span>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="empty-state" aria-hidden="true">
+            <div class="empty-icon">⚡</div>
+            <p>Fill in the fields on the left and click <strong>Generate Optimized Prompt</strong> to build your structured AI prompt.</p>
+          </div>
+
+          <!-- Output -->
+          <pre
+            id="output-pre"
+            class="output-pre hidden"
+            aria-label="Generated prompt output"
+            aria-live="polite"
+          ></pre>
+
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /panels -->
+
+  <!-- ── Templates Library ──────────────────────────────────────── -->
+  <section class="templates-section" aria-labelledby="templates-section-title">
+    <div class="section-header-bar">
+      <div class="section-title">
+        <div class="icon icon-orange">📚</div>
+        <span id="templates-section-title">Template Library</span>
+        <span class="template-count" aria-live="polite"></span>
+      </div>
+      <span class="badge badge-blue">Blockchain &amp; DeFi</span>
+    </div>
+    <div class="category-filters" id="category-filters" role="group" aria-label="Filter templates by category">
+      <!-- Injected by JS -->
+    </div>
+    <div class="templates-grid" id="templates-grid" role="list" aria-label="Prompt templates">
+      <!-- Injected by JS -->
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <p>AI Prompt Generator &mdash; Built with Flask &amp; Vanilla JS &bull; Blockchain &amp; DeFi Focused</p>
+</footer>
+
+<!-- ── Toast Container ────────────────────────────────────────── -->
+<div class="toast-container" id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>
