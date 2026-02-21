@@ -11,6 +11,9 @@ const rulesEl           = document.getElementById("rules");
 const outputGoalEl      = document.getElementById("output-goal");
 const correctnessEl     = document.getElementById("correctness");
 const howToActEl        = document.getElementById("how-to-act");
+const codeOutputGuidelinesEl = document.getElementById("code-output-guidelines");
+const openclawToggle    = document.getElementById("openclaw-toggle");
+const openclawToggleLabel = document.getElementById("openclaw-toggle-label");
 const generateBtn       = document.getElementById("generate-btn");
 const clearBtn          = document.getElementById("clear-btn");
 const copyBtn           = document.getElementById("copy-btn");
@@ -29,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   clearBtn.addEventListener("click", handleClear);
   copyBtn.addEventListener("click", handleCopy);
   templateSelect.addEventListener("change", handleTemplateSelectChange);
+  openclawToggle.addEventListener("change", handleOpenclawToggle);
 });
 
 /* ── Template Loading ─────────────────────────────────────────── */
@@ -132,12 +136,13 @@ function buildTemplateCard(t) {
 
 /* ── Form Helpers ─────────────────────────────────────────────── */
 function fillForm(t) {
-  mainGoalEl.value     = t.main_goal     || "";
-  outputFormatEl.value = t.output_format || "";
-  rulesEl.value        = t.rules         || "";
-  outputGoalEl.value   = t.output_goal   || "";
-  correctnessEl.value  = t.correctness   || "";
-  howToActEl.value     = t.how_to_act    || "";
+  mainGoalEl.value            = t.main_goal              || "";
+  outputFormatEl.value        = t.output_format          || "";
+  rulesEl.value               = t.rules                  || "";
+  outputGoalEl.value          = t.output_goal            || "";
+  correctnessEl.value         = t.correctness            || "";
+  howToActEl.value            = t.how_to_act             || "";
+  codeOutputGuidelinesEl.value = t.code_output_guidelines || "";
 }
 
 function handleTemplateSelectChange() {
@@ -155,7 +160,10 @@ function handleTemplateSelectChange() {
 
 function handleClear() {
   mainGoalEl.value = outputFormatEl.value = rulesEl.value =
-    outputGoalEl.value = correctnessEl.value = howToActEl.value = "";
+    outputGoalEl.value = correctnessEl.value = howToActEl.value =
+    codeOutputGuidelinesEl.value = "";
+  openclawToggle.checked = false;
+  openclawToggleLabel.textContent = "Disabled — enable to append OpenClaw integration steps to your prompt";
   templateSelect.value = "";
   activeTemplateId = null;
   document.querySelectorAll(".template-card").forEach(c => c.classList.remove("active"));
@@ -171,15 +179,17 @@ function handleClear() {
 /* ── Generate ─────────────────────────────────────────────────── */
 async function handleGenerate() {
   const body = {
-    main_goal:     mainGoalEl.value.trim(),
-    output_format: outputFormatEl.value.trim(),
-    rules:         rulesEl.value.trim(),
-    output_goal:   outputGoalEl.value.trim(),
-    correctness:   correctnessEl.value.trim(),
-    how_to_act:    howToActEl.value.trim(),
+    main_goal:              mainGoalEl.value.trim(),
+    output_format:          outputFormatEl.value.trim(),
+    rules:                  rulesEl.value.trim(),
+    output_goal:            outputGoalEl.value.trim(),
+    correctness:            correctnessEl.value.trim(),
+    how_to_act:             howToActEl.value.trim(),
+    code_output_guidelines: codeOutputGuidelinesEl.value.trim(),
+    openclaw_integration:   openclawToggle.checked,
   };
 
-  if (!Object.values(body).some(v => v)) {
+  if (!Object.entries(body).some(([k, v]) => k !== "openclaw_integration" && v) && !body.openclaw_integration) {
     showToast("Please fill in at least one field", "error");
     return;
   }
@@ -216,6 +226,16 @@ function displayOutput(text, charCount) {
 function setLoading(on) {
   generateBtn.disabled = on;
   spinnerOverlay.classList.toggle("active", on);
+}
+
+/* ── OpenClaw Toggle ──────────────────────────────────────────── */
+function handleOpenclawToggle() {
+  if (openclawToggle.checked) {
+    openclawToggleLabel.textContent = "Enabled — OpenClaw AI integration steps will be appended to your prompt";
+    showToast("OpenClaw integration enabled", "info");
+  } else {
+    openclawToggleLabel.textContent = "Disabled — enable to append OpenClaw integration steps to your prompt";
+  }
 }
 
 /* ── Copy ─────────────────────────────────────────────────────── */
@@ -264,6 +284,7 @@ function categoryClass(cat) {
     "MEV Bot":                 "cat-mev-bot",
     "NFT":                     "cat-nft",
     "Cross-Chain":             "cat-cross-chain",
+    "OpenClaw Integration":    "cat-openclaw",
   };
   return map[cat] || "cat-default";
 }

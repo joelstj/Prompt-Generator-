@@ -46,7 +46,7 @@
           <div class="icon icon-blue">📝</div>
           <span id="input-panel-title">Prompt Builder</span>
         </div>
-        <span class="badge badge-blue">6 Fields</span>
+        <span class="badge badge-blue">7 Fields</span>
       </div>
       <div class="panel-body">
         <form id="prompt-form" novalidate>
@@ -121,6 +121,34 @@
               placeholder="Define how to verify correctness. E.g., 'Verify compiles without warnings under solc 0.8.20, check for reentrancy vulnerabilities, confirm access control…'"
               aria-label="Correctness and verification"
             ></textarea>
+          </div>
+
+          <!-- Code Output Guidelines -->
+          <div class="form-group">
+            <label for="code-output-guidelines">
+              <span class="label-icon">🖥️</span> Code Output Guidelines
+            </label>
+            <textarea
+              id="code-output-guidelines"
+              class="tall"
+              placeholder="Specify programming language, tools, libraries, and environment instructions. E.g.:\nLanguage: Python 3.11\nTools: Hardhat, VS Code\nLibraries: OpenZeppelin, web3.py\nBuild: npm install && npx hardhat compile\nDeploy: npx hardhat run scripts/deploy.ts --network mainnet"
+              aria-label="Code output guidelines"
+            ></textarea>
+          </div>
+
+          <!-- OpenClaw AI Integration -->
+          <div class="form-group">
+            <label class="openclaw-label" for="openclaw-toggle">
+              <span class="label-icon">🤖</span> OpenClaw AI Integration
+              <span class="badge badge-openclaw">Optional</span>
+            </label>
+            <div class="openclaw-toggle-row">
+              <label class="toggle-switch" aria-label="Enable OpenClaw AI integration">
+                <input type="checkbox" id="openclaw-toggle" />
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label" id="openclaw-toggle-label">Disabled — enable to append OpenClaw integration steps to your prompt</span>
+            </div>
           </div>
 
           <!-- How to Act -->
